@@ -13,6 +13,7 @@ import eventedShowHideState from '../../globals/js/mixins/evented-show-hide-stat
 import handles from '../../globals/js/mixins/handles';
 import eventMatches from '../../globals/js/misc/event-matches';
 import on from '../../globals/js/misc/on';
+import FocusTrap from 'focus-trap';
 
 class Modal extends mixin(
   createComponent,
@@ -44,6 +45,7 @@ class Modal extends mixin(
    */
   constructor(element, options) {
     super(element, options);
+    this.focusTrap = new FocusTrap(this.element);
     this._hookCloseActions();
   }
 
@@ -131,7 +133,15 @@ class Modal extends mixin(
 
     if (state === 'hidden') {
       this.element.classList.toggle(this.options.classVisible, false);
+      this.focusTrap.deactivate();
     } else if (state === 'shown') {
+      // This is a POC but I'd like to know if there is a preferred way to apply something after a CSS animation in Carbon?
+      // The visibility animation is set to 240ms by default
+      setTimeout(() => {
+        this.focusTrap.activate(
+          this.element.querySelector(this.options.selectorPrimaryFocus)
+        );
+      }, 250);
       this.element.classList.toggle(this.options.classVisible, true);
     }
     handleTransitionEnd = this.manage(
